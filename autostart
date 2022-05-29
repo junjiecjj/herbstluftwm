@@ -267,7 +267,7 @@ hc set auto_detect_monitors 1
 
 
 # find the panel
-panel=~/.config/herbstluftwm/panel_AdamYuan.sh
+panel=~/.config/herbstluftwm/panel_ssh0.sh
 [ -x "$panel" ] || panel=/etc/xdg/herbstluftwm/panel.sh
 for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
     # start it on each monitor

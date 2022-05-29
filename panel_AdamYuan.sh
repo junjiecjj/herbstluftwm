@@ -19,7 +19,9 @@ fi
 # geometry has the format W H X Y
 x=${geometry[0]}
 y=${geometry[1]}
-panel_width=${geometry[2]}
+panel_width=$(( ${geometry[2]} - 200 ))
+echo  ${panel_width}
+
 panel_height=$DZEN_HEIGHT
 _font="Noto Sans S Chinese-medium-16"
 font="Noto Sans S Chinese-medium-16"

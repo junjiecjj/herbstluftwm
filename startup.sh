@@ -176,7 +176,8 @@ fi
 
 # System tray
 if [ -z "$(pgrep trayer)" ] ; then
-    trayer --edge top --align right --widthtype percent --width 10 --heighttype pixel --height 22  --SetPartialStrut true --transparent true --alpha 60 --tint 0x777777 --expand true
+    # trayer --edge top --align right --widthtype percent --width 10 --heighttype pixel --height 24  --SetPartialStrut true --transparent true --alpha 60 --tint 0x777777 --expand true
+    trayer --edge top --align center --widthtype percent --width 9 --heighttype pixel --height 16  --SetPartialStrut true --transparent true --alpha 240 --tint 0xffffff --expand true
 fi
 
 

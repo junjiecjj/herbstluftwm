@@ -1,0 +1,363 @@
+#!/usr/bin/env bash
+
+
+
+###############################################################################
+# Initialise                                                                {{{
+#------------------------------------------------------------------------------
+# this is a simple config for herbstluftwm
+
+hc() {
+    herbstclient "$@"
+}
+
+# use example script from:
+src='/usr/share/doc/herbstluftwm/examples/'
+
+hc emit_hook reload
+
+xsetroot -solid '#5A8E3A'
+
+
+
+#---------------------------------------------------------------------------}}}
+# Keybindings                                                               {{{
+#------------------------------------------------------------------------------
+
+# remove all existing keybindings
+hc keyunbind --all
+
+
+# keybindings
+# if you have a super key you will be much happier with Mod set to Mod4
+# Mod=Mod1    # Use alt as the main modifier
+Mod=Mod4   # Use the super key as the main modifier
+altmod=Mod1
+
+hc keybind $Mod-Control-e quit
+hc keybind $Mod-Control-r reload
+hc keybind $Mod-Shift-q close
+hc keybind $Mod-Return spawn ${TERMINAL:-st} # use your $TERMINAL with xterm as fallback
+
+# basic movement
+# focusing clients
+hc keybind $Mod-Left  focus left
+hc keybind $Mod-Down  focus down
+hc keybind $Mod-Up    focus up
+hc keybind $Mod-Right focus right
+hc keybind $Mod-h     focus left
+hc keybind $Mod-j     focus down
+hc keybind $Mod-k     focus up
+hc keybind $Mod-l     focus right
+
+# moving clients
+hc keybind $Mod-Shift-Left  shift left
+hc keybind $Mod-Shift-Down  shift down
+hc keybind $Mod-Shift-Up    shift up
+hc keybind $Mod-Shift-Right shift right
+hc keybind $Mod-Shift-h     shift left
+hc keybind $Mod-Shift-j     shift down
+hc keybind $Mod-Shift-k     shift up
+hc keybind $Mod-Shift-l     shift right
+
+# # splitting frames
+# # create an empty frame at the specified direction
+# hc keybind $Mod-u       split   bottom  0.5
+# hc keybind $Mod-o       split   right   0.5
+# # let the current frame explode into subframes
+# hc keybind $Mod-Control-space split explode
+
+
+bash ~/.config/herbstluftwm/scripts/tag.sh
+# splitting frames
+# create an empty frame at the specified direction
+hc keybind $Mod-u       and ,       split   bottom  0.5 , spawn bash ~/.config/herbstluftwm/scripts/tag.sh
+hc keybind $Mod-o       and ,       split   right   0.5 , spawn bash ~/.config/herbstluftwm/scripts/tag.sh
+# let the current frame explode into subframes
+hc keybind $Mod-Control-space and , split explode , spawn bash ~/.config/herbstluftwm/scripts/tag.sh
+# layouting
+hc keybind $Mod-Alt-k and , remove , spawn bash ~/.config/herbstluftwm/scripts/tag.sh
+
+
+
+# source ~/.config/herbstluftwm/scripts/pad.sh
+# split_rate_h=${split_rate_h:-0.5}
+# resizestep_h=${resizestep_h:-0.005}
+# split_rate_v=${split_rate_v:-0.5}
+# resizestep_v=${resizestep_v:-0.02}
+## splitting frames
+## create an empty frame at the specified direction
+# hc keybind $Mod-s chain , split bottom $split_rate_h , focus down
+# hc keybind $Mod-v chain , split right  $split_rate_v , focus right
+# hc keybind $Mod-Control-j chain , split bottom 0.5 , focus down
+# hc keybind $Mod-Control-k chain , split top    0.5 , focus up
+# hc keybind $Mod-Control-h chain , split left   0.5 , focus left
+# hc keybind $Mod-Control-l chain , split right  0.5 , focus right
+# let the current frame explode into subframes
+# hc keybind $Mod-Control-space split explode
+
+
+# resizing frames
+resizestep=0.05
+hc keybind $Mod-Control-h       resize left +$resizestep
+hc keybind $Mod-Control-j       resize down +$resizestep
+hc keybind $Mod-Control-k       resize up +$resizestep
+hc keybind $Mod-Control-l       resize right +$resizestep
+hc keybind $Mod-Control-Left    resize left +$resizestep
+hc keybind $Mod-Control-Down    resize down +$resizestep
+hc keybind $Mod-Control-Up      resize up +$resizestep
+hc keybind $Mod-Control-Right   resize right +$resizestep
+
+# hc keybind $Mod-Control-Left    resize left +$resizestep_h
+# hc keybind $Mod-Control-Down    resize down +$resizestep_v
+# hc keybind $Mod-Control-Up      resize up +$resizestep_v
+# hc keybind $Mod-Control-Right   resize right +$resizestep_h
+
+
+# tags
+tag_names=( {1..9} )
+tag_keys=( {1..9} 0 )
+# tag_names=( 1:Browser  2:Code 3:Term  4:File  5:Chat  6:Au-Video  7 8 9 )
+# tag_keys=( 1:Browser  2:Code 3:Term  4:File  5:Chat  6:Au-Video  7 8  9 0 )
+
+hc rename default "${tag_names[0]}" || true
+for i in ${!tag_names[@]} ; do
+    hc add "${tag_names[$i]}"
+    key="${tag_keys[$i]}"
+    if ! [ -z "$key" ] ; then
+        hc keybind "$Mod-$key" use_index "$i"
+        hc keybind "$Mod-Shift-$key" move_index "$i"
+    fi
+done
+
+# cycle through tags
+hc keybind $Mod-quoteright          use_index +1 --skip-visible
+hc keybind $Mod-semicolon           use_index -1 --skip-visible
+# shift client to neighbor tag
+hc keybind $Mod-Shift-quoteright     move_index +1 --skip-visible
+hc keybind $Mod-Shift-semicolon      move_index -1 --skip-visible
+
+
+
+# hc keybind $Mod-Shift-t   spawn ~/.config/herbstluftwm/scripts/toggle_single_float.sh
+# hc keybind $Mod-Control-f spawn ~/.config/herbstluftwm/scripts/maximize.sh
+# layouting
+hc keybind $Mod-Shift-r      remove
+hc keybind $Mod-Shift-c      close_or_remove
+hc keybind $Mod-Shift-f    floating toggle
+hc keybind $Mod-f          fullscreen toggle
+hc keybind $Mod-p          pseudotile toggle
+# The following cycles through the available layouts within a frame, but skips
+# layouts, if the layout change wouldn't affect the actual window positions.
+# I.e. if there are two windows within a frame, the grid layout is skipped.
+hc keybind $Mod-Shift-space                                                           \
+            or , and . compare tags.focus.curframe_wcount = 2                   \
+                     . cycle_layout +1 vertical horizontal max vertical grid    \
+               , cycle_layout +1
+
+
+# # in flame
+# hc keybind $Mod-space   cycle_layout 1
+# hc keybind $Mod-o       cycle_layout 1 max vertical
+
+# mouse
+hc mouseunbind --all
+hc mousebind $Mod-Button1 move
+hc mousebind $Mod-Button2 zoom
+hc mousebind $Mod-Button3 resize
+
+# focus
+hc keybind $Mod-BackSpace   cycle_monitor
+hc keybind $Mod-Tab         cycle_all +1
+hc keybind $Mod-Shift-Tab   cycle_all -1
+hc keybind $Mod-c     cycle
+hc keybind $Mod-i           jumpto urgent
+
+
+
+
+hc keybind $Mod-w         cycle_all +1
+hc keybind $Mod-q         cycle_all -1
+hc keybind $Mod-k         cycle  +1
+hc keybind $Mod-j         cycle  -1
+
+
+
+# switch focus to different monitor
+hc keybind $Mod-bracketright         cycle_monitor +1
+hc keybind $Mod-bracketleft          cycle_monitor -1
+
+# theme
+hc attr theme.tiling.reset 1
+hc attr theme.floating.reset 1
+hc set frame_border_active_color '#222222'
+hc set frame_border_normal_color '#101010'
+hc set frame_bg_normal_color '#565656'
+hc set frame_bg_active_color '#345F0C'
+hc set frame_border_width 1
+hc set always_show_frame 1
+hc set frame_bg_transparent 1
+hc set frame_transparent_width 2
+hc set frame_gap 2
+
+
+# colors
+hc set window_border_active_color '#ff005f'
+hc set window_border_normal_color '#262626'
+
+
+
+hc attr theme.active.color '#9fbc00'
+hc attr theme.normal.color '#454545'
+hc attr theme.urgent.color orange
+hc attr theme.inner_width 1
+hc attr theme.inner_color black
+hc attr theme.border_width 2
+hc attr theme.floating.border_width 4
+hc attr theme.floating.outer_width 1
+hc attr theme.floating.outer_color black
+hc attr theme.active.inner_color '#3E4A00'
+hc attr theme.active.outer_color '#3E4A00'
+hc attr theme.background_color '#141414'
+
+hc set window_gap 0
+hc set window_border_width 2
+hc set window_border_inner_width 0
+hc set frame_padding  0
+hc set smart_window_surroundings 0
+hc set smart_frame_surroundings 1
+hc set mouse_recenter_gap 0
+
+
+
+# opacities (%)
+hc set frame_active_opacity 40
+hc set frame_normal_opacity 40
+
+hc set pseudotile_center_threshold 14
+hc set focus_follows_mouse 1
+
+hc set snap_distance 14
+hc set snap_gap 9
+
+hc set default_frame_layout 3
+
+# rules
+hc unrule -F
+#hc rule class=XTerm tag=3 # move all xterms to tag 3
+hc rule focus=on # normally focus new clients
+#hc rule focus=off # normally do not focus new clients
+# give focus to most common terminals
+#hc rule class~'(.*[Rr]xvt.*|.*[Tt]erm|Konsole)' focus=on
+hc rule windowtype~'_NET_WM_WINDOW_TYPE_(DIALOG|UTILITY|SPLASH)' pseudotile=on
+hc rule windowtype='_NET_WM_WINDOW_TYPE_DIALOG' focus=on
+hc rule windowtype~'_NET_WM_WINDOW_TYPE_(NOTIFICATION|DOCK|DESKTOP)' manage=off
+
+hc set tree_style '╾│ ├└╼─┐'
+
+# unlock, just to be sure
+hc unlock
+
+# do multi monitor setup here, e.g.:
+# hc set_monitors 1280x1024+0+0 1280x1024+1280+0
+# hc set_monitors 1920x1080+0+0
+# or simply:
+hc detect_monitors
+hc set auto_detect_monitors 1
+
+
+# find the panel
+panel=~/.config/herbstluftwm/panel_AdamYuan.sh
+[ -x "$panel" ] || panel=/etc/xdg/herbstluftwm/panel.sh
+for monitor in $(herbstclient list_monitors | cut -d: -f1) ; do
+    # start it on each monitor
+    "$panel" $monitor &
+done
+
+
+# reload dzen2
+hc keybind $Mod-F11 spawn ~/.config/herbstluftwm/scripts/reload_panel.sh
+
+
+# herbstcommander
+hc keybind $Mod-colon spawn ${src}herbstcommander.sh
+# Focus specified client by name (using dmenu)
+hc keybind $Mod-Shift-g spawn ${src}herbstcommander.sh jumpto
+# Bring specified client by name (using dmenu)
+hc keybind $Mod-b spawn ${src}herbstcommander.sh bring
+# Open q3-like terminal for arbitrary application
+hc keybind $Mod-backslash chain . spawn ${src}q3terminal.sh . emit_hook focus_changed
+
+
+#=======================================================================================
+#====   AutoStart program
+#=======================================================================================
+
+
+/bin/bash   ~/.config/herbstluftwm/startup.sh &
+#=======================================================================================
+#====   custom keybind
+#=======================================================================================
+
+hc keybind $Mod-x  spawn xterm
+hc keybind $Mod-Shift-n spawn st -e nvim
+
+hc keybind $Mod-n  spawn nautilus
+# Launch file manager
+hc keybind $Mod-t spawn thunar
+
+hc keybind $Mod-z  spawn zathura
+
+hc keybind $Mod-r  spawn rofi -show combi
+hc keybind $Mod-d  spawn dmenu_run -fn 'xos JetBrainsMono:size=16' -sb '#88C0D0' -nb '#2E3440' -nf '#D8DEE9' -sf '#434C5E'
+
+hc keybind $Mod-g  spawn google-chrome-stable
+
+hc keybind $Mod-Shift-b   spawn      feh --recursive --randomize --bg-fill   $(xdg-user-dir PICTURES)'/Wallpapers/'
+
+
+
+# 锁屏
+hc keybind $Mod-Control-b  spawn  betterlockscreen  --lock dim
+hc keybind $Mod-Control-s  spawn  slock
+hc keybind $Mod-Control-x  spawn  xscreensaver-command -lock
+
+
+# 音量调节
+hc keybind $Mod-Control-Equal     spawn     pactl set-sink-volume @DEFAULT_SINK@ +8%
+hc keybind $Mod-Control-Minus     spawn     pactl set-sink-volume @DEFAULT_SINK@ -8%
+hc keybind $Mod-Control-BackSpace spawn     pactl set-source-mute @DEFAULT_SOURCE@ toggle
+
+
+# Play / Pause media key
+hc keybind XF86AudioPlay spawn mpc toggle
+hc keybind XF86HomePage  spawn mpc toggle
+hc keybind Shift-F6      spawn mpc toggle
+hc keybind Shift-XF86AudioPlay spawn streamradio pause
+hc keybind Shift-XF86HomePage  spawn streamradio pause
+# Volume setting media key
+hc keybind XF86AudioRaiseVolume spawn sound_volume_change_wrapper.sh +
+hc keybind XF86AudioLowerVolume spawn sound_volume_change_wrapper.sh -
+hc keybind XF86AudioMute        spawn sound_volume_change_wrapper.sh m
+# Brightness
+hc keybind XF86MonBrightnessUp   spawn ~/bin/brightness_change_wrapper.sh eDP-1 +
+hc keybind XF86MonBrightnessDown spawn ~/bin/brightness_change_wrapper.sh eDP-1 -
+
+#==================== 快速截图 ===========================================
+hc keybind $Mod-Shift-Print   spawn      deepin-screenshot
+
+hc keybind Shift-Print       spawn     flameshot gui -p  $(xdg-user-dir PICTURES) -d 2000 ;exec notify-send '火焰截图 无延时 自己选择截图区域 保存在~/图片'
+
+hc keybind Control-Print     spawn       flameshot full -c -p  $(xdg-user-dir PICTURES)  -d 2000 ;exec notify-send '火焰截图 捕获全屏（无GUI）并保存到剪贴板和路径~/图片 延迟2秒'
+
+
+hc keybind Print          spawn      "scrot -cd 3 $(xdg-user-dir PICTURES)/'Scrot_%Y-%m-%d_%H:%M:%S_$wx$h.png' -e 'xclip -selection clipboard -target image/png -i $f; viewnior $f';exec notify-send 'Scrot截图 截取全屏 无GUI 保存指定路径 延迟3s 复制到剪切板 打开查看'"
+
+hc keybind $Mod-Print     spawn      "scrot $(xdg-user-dir PICTURES)/'Scrot_%Y-%m-%d_%H:%M:%S_$wx$h.png' -e 'viewnior $f';exec notify-send 'Scrot截图 截取全屏，无GUI，保存指定路径 打开查看'"
+
+
+
+#开启/关闭触摸板
+hc keybind $Mod-Control-t     spawn      bash   ./touchpad.sh
+
+

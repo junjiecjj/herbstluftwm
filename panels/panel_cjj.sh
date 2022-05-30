@@ -13,13 +13,14 @@ if [ -z "$geometry" ] ;then
     echo "Invalid monitor $monitor"
     exit 1
 fi
+
 # geometry has the format W H X Y
 x=${geometry[0]}
 y=${geometry[1]}
 panel_width=$[ ${geometry[2]}-200  ]
-panel_height=22
+panel_height=20
 font="-*-fixed-medium-*-*-*-16-*-*-*-*-*-*-*"
-# font="-*-WenQuanYi Micro Hei-*-*-*-16-*-*-*-*-*-*-*"
+# font="-*-WenQuanYi-Micro-Hei-*-*-*-16-*-*-*-*-*-*-*"
 # font="WenQuanYi Micro Hei"
 bgcolor=$(hc get frame_border_normal_color)
 selbg=$(hc get window_border_active_color)
@@ -61,7 +62,6 @@ else
 fi
 
 hc pad $monitor $panel_height
-
 {
     ### Event generator ###
     # based on different input data (mpc, date, hlwm hooks, ...) this generates events, formed like this:
@@ -73,7 +73,7 @@ hc pad $monitor $panel_height
     while true ; do
         # "date" output is checked once a second, but an event is only
         # generated if the output changed compared to the previous run.
-        date +$'date\t^fg(#efefef)%H:%M:%S^fg(#909090), %Y-%m-^fg(#efefef)%d %u'
+        date +$'date\t^fg(#00FF00)%H:%M:%S^fg(#909090), %Y-%m-^fg(#00FF00)%d %w'
         sleep 1 || break
     done > >(uniq_linebuffered) &
     childpid=$!

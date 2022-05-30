@@ -1,48 +1,39 @@
-#! /usr/bin/env bash
-#########################################################################
-# File Name: panel.sh
-# Author:陈俊杰
-# mail: 2716705056@qq.com
-# Created Time: 2022年05月29日 星期日 18时44分19秒
+#!/usr/bin/env bash
 
-# 此程序的功能是：
-#########################################################################
+quote() {
+	local q="$(printf '%q ' "$@")"
+	printf '%s' "${q% }"
+}
 
-
+hc_quoted="$(quote "${herbstclient_command[@]:-herbstclient}")"
 hc() { "${herbstclient_command[@]:-herbstclient}" "$@" ;}
 monitor=${1:-0}
-geometry=( $(herbstclient monitor_rect "$monitor") )
+geometry=( $(hc monitor_rect "$monitor") )
 if [ -z "$geometry" ] ;then
     echo "Invalid monitor $monitor"
     exit 1
 fi
 # geometry has the format W H X Y
-x_offset=42
-y_offset=4
-x=$(echo "${geometry[0]} + $x_offset" | bc)
-y=$(echo "${geometry[1]} + $y_offset" | bc)
-panel_width=$(echo "${geometry[2]} - (2 * $x_offset + 1)" | bc)
-monitor_width=${geometry[2]}
-fn="$HOME/.config/herbstluftwm/monitor.d/${monitor_width}x${geometry[3]}.sh"
-[ -f "${fn}" ] && source "${fn}"
-panel_height=${pad_up}
-font="-*-Migu 1M-medium-*-*-*-16-*-*-*-*-*-*-*"
-# bgcolor=$(hc get frame_border_normal_color)
-bgcolor='#000000'
-selbg='#ff005f'
-selfg='#000000'
+x=${geometry[0]}
+y=${geometry[1]}
+panel_width=${geometry[2]}
+panel_height=16
+font="-*-fixed-medium-*-*-*-12-*-*-*-*-*-*-*"
+bgcolor=$(hc get frame_border_normal_color)
+selbg=$(hc get window_border_active_color)
+selfg='#101010'
 
 ####
 # Try to find textwidth binary.
 # In e.g. Ubuntu, this is named dzen2-textwidth.
-# if which textwidth &> /dev/null ; then
-#     textwidth="textwidth";
-# elif which dzen2-textwidth &> /dev/null ; then
-#     textwidth="dzen2-textwidth";
-# else
-#     echo "This script requires the textwidth tool of the dzen2 project."
-#     exit 1
-# fi
+if which textwidth &> /dev/null ; then
+    textwidth="textwidth";
+elif which dzen2-textwidth &> /dev/null ; then
+    textwidth="dzen2-textwidth";
+else
+    echo "This script requires the textwidth tool of the dzen2 project."
+    exit 1
+fi
 ####
 # true if we are using the svn version of dzen2
 # depending on version/distribution, this seems to have version strings like
@@ -67,7 +58,7 @@ else
     }
 fi
 
-# hc pad $monitor $panel_height
+hc pad $monitor $panel_height
 
 {
     ### Event generator ###
@@ -80,8 +71,7 @@ fi
     while true ; do
         # "date" output is checked once a second, but an event is only
         # generated if the output changed compared to the previous run.
-        # date +$'date\t^fg(#ece391)%a %m/%d %H:%M'
-        date +$'date\t^fg(#909090)%a %m/%d %H:%M'
+        date +$'date\t^fg(#efefef)%H:%M^fg(#909090), %Y-%m-^fg(#efefef)%d'
         sleep 1 || break
     done > >(uniq_linebuffered) &
     childpid=$!
@@ -98,64 +88,42 @@ fi
         # This part prints dzen data based on the _previous_ data handling run,
         # and then waits for the next event to happen.
 
-        # bordercolor="#26221C"
-        bordercolor="#000000"
-        separator="^bg()^fg(#666666) :"
-        titlecolor="#666666"
+        separator="^bg()^fg($selbg)|"
         # draw tags
         for i in "${tags[@]}" ; do
-            tag_char=""
             case ${i:0:1} in
-                '#')  # the tag is viewed on the specified monitor and it is focused
-                    echo -n "^bg()^fg($selbg)"
-                    tag_char="●"
-                    titlecolor="${selbg}"
+                '#')
+                    echo -n "^bg($selbg)^fg($selfg)"
                     ;;
-                '+')  # the tag is viewed on the specified monitor but the monitor is not focused
-                    echo -n "^bg()^fg(#A8B6B8)"
-                    tag_char="●"
+                '+')
+                    echo -n "^bg(#9CA668)^fg(#141414)"
                     ;;
-                ':')  # the tag is not empty
-                    echo -n "^bg()^fg(#666666)"
-                    tag_char="●"
+                ':')
+                    echo -n "^bg()^fg(#ffffff)"
                     ;;
-                '!')  # the tag contains an urgent window
+                '!')
                     echo -n "^bg(#FF0675)^fg(#141414)"
-                    tag_char="*"
-                    ;;
-                '%')  # the tag is viewed on a different monitor and this monitor is not focused
-                    echo -n "^bg()^fg($selbg)"
-                    tag_char="⦿"
-                    ;;
-                '-')  # the tag is viewed on a different monitor and this monitor is not focused
-                    echo -n "^bg()^fg(#A8B6B8)"
-                    tag_char="⦿"
                     ;;
                 *)
-                    echo -n "^bg()^fg(#666666)"
-                    tag_char="○"
+                    echo -n "^bg()^fg(#ababab)"
                     ;;
             esac
             if [ ! -z "$dzen2_svn" ] ; then
                 # clickable tags if using SVN dzen
-                echo -n "^ca(1,\"${herbstclient_command[@]:-herbstclient}\" "
-                echo -n "focus_monitor \"$monitor\" && "
-                echo -n "\"${herbstclient_command[@]:-herbstclient}\" "
-                # echo -n "use \"${i:1}\") ${i:1} ^ca()"
-                echo -n "use \"${i:1}\") ${tag_char}^ca()"
+                echo -n "^ca(1,$hc_quoted focus_monitor \"$monitor\" && "
+                echo -n "$hc_quoted use \"${i:1}\") ${i:1} ^ca()"
             else
                 # non-clickable tags if using older dzen
                 echo -n " ${i:1} "
             fi
         done
         echo -n "$separator"
-        echo -n "^bg()^fg(${titlecolor}) ${windowtitle//^/^^}"
+        echo -n "^bg()^fg() ${windowtitle//^/^^}"
         # small adjustments
-        right="^bg() $date"
+        right="$separator^bg() $date $separator"
         right_text_only=$(echo -n "$right" | sed 's.\^[^(]*([^)]*)..g')
         # get width of right aligned text.. and add some space..
-        # width=$($textwidth "$font" "$right_text_only    ")
-        width=150
+        width=$($textwidth "$font" "$right_text_only    ")
         echo -n "^pa($(($panel_width - $width)))$right"
         echo
 
@@ -193,10 +161,10 @@ fi
                 echo "^togglehide()"
                 if $visible ; then
                     visible=false
-                    hc pad $monitor $(($(hc list_padding $monitor | cut -d' ' -f1) - 19))
+                    hc pad $monitor 0
                 else
                     visible=true
-                    hc pad $monitor $pad_up
+                    hc pad $monitor $panel_height
                 fi
                 ;;
             reload)
@@ -215,5 +183,5 @@ fi
     # gets piped to dzen2.
 
 } 2> /dev/null | dzen2 -w $panel_width -x $x -y $y -fn "$font" -h $panel_height \
-    -e 'button3=' \
+    -e "button3=;button4=exec:$hc_quoted use_index -1;button5=exec:$hc_quoted use_index +1" \
     -ta l -bg "$bgcolor" -fg '#efefef'

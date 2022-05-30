@@ -16,9 +16,11 @@ fi
 # geometry has the format W H X Y
 x=${geometry[0]}
 y=${geometry[1]}
-panel_width=${geometry[2]}
-panel_height=16
-font="-*-fixed-medium-*-*-*-12-*-*-*-*-*-*-*"
+panel_width=$[ ${geometry[2]}-200  ]
+panel_height=22
+font="-*-fixed-medium-*-*-*-16-*-*-*-*-*-*-*"
+# font="-*-WenQuanYi Micro Hei-*-*-*-16-*-*-*-*-*-*-*"
+# font="WenQuanYi Micro Hei"
 bgcolor=$(hc get frame_border_normal_color)
 selbg=$(hc get window_border_active_color)
 selfg='#101010'
@@ -71,7 +73,7 @@ hc pad $monitor $panel_height
     while true ; do
         # "date" output is checked once a second, but an event is only
         # generated if the output changed compared to the previous run.
-        date +$'date\t^fg(#efefef)%H:%M^fg(#909090), %Y-%m-^fg(#efefef)%d'
+        date +$'date\t^fg(#efefef)%H:%M:%S^fg(#909090), %Y-%m-^fg(#efefef)%d %u'
         sleep 1 || break
     done > >(uniq_linebuffered) &
     childpid=$!
